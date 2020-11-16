@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 file(READ "${CMAKE_CURRENT_LIST_DIR}/package.xml" file_contents)
 string(REGEX MATCH "<version>([0-9]+.[0-9]+.[0-9]+)<\/version>" _ "${file_contents}")
 if(NOT CMAKE_MATCH_COUNT EQUAL 1)
-    message(FATAL_ERROR "Could not extract major version number from package.xml")
+    message(FATAL_ERROR "Could not extract version number from package.xml")
 endif()
 set(PACKAGE_VERSION ${CMAKE_MATCH_1})
 
@@ -159,51 +159,72 @@ install(FILES
 ##########
 ## Test ##
 ##########
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
-  enable_testing()
+find_package(catkin QUIET)
 
-  ## --- code copied from https://crascit.com/2015/07/25/cmake-gtest/
-  # Download and unpack googletest at configure time
-  configure_file(cmake/gtest_download.cmake.in googletest-download/CMakeLists.txt)
-  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
-  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
+if(CATKIN_ENABLE_TESTING AND CATKIN_ENABLE_TESTING)
 
-  # Add googletest directly to our build. This adds
-  # the following targets: gtest, gtest_main, gmock
-  # and gmock_main
-  add_subdirectory("${CMAKE_BINARY_DIR}/googletest-src"
-  "${CMAKE_BINARY_DIR}/googletest-build")
+    message(STATUS "Building tests the Catkin way")
+    catkin_add_gtest(memory_blocs_parser_navigation-test test/memory_blocs_parser_navigation.test.cc)
+    target_link_libraries(memory_blocs_parser_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
-  # The gtest/gmock targets carry header search path
-  # dependencies automatically when using CMake 2.8.11 or
-  # later. Otherwise we have to add them here ourselves.
-  if(CMAKE_VERSION VERSION_LESS 2.8.11)
-    include_directories("${gtest_SOURCE_DIR}/include")
-  endif()
+    catkin_add_gtest(memory_blocs_parser_extended_navigation-test test/memory_blocs_parser_extended_navigation.test.cc)
+    target_link_libraries(memory_blocs_parser_extended_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_extended_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
-  ## ---
+    catkin_add_gtest(memory_blocs_parser_external_data-test test/memory_blocs_parser_external_data.test.cc)
+    target_link_libraries(memory_blocs_parser_external_data-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_external_data-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
-  ## Add gtest based cpp test target and link libraries
-  add_executable(memory_blocs_parser_navigation-test test/memory_blocs_parser_navigation.test.cc)
-  target_link_libraries(memory_blocs_parser_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
-  set_target_properties(memory_blocs_parser_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-  add_test(NAME memory_blocs_parser_navigation_test COMMAND memory_blocs_parser_navigation-test WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+    catkin_add_gtest(stdbin_decoder-test test/stdbin_decoder.test.cc)
+    target_link_libraries(stdbin_decoder-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(stdbin_decoder-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
-  add_executable(memory_blocs_parser_extended_navigation-test test/memory_blocs_parser_extended_navigation.test.cc)
-  target_link_libraries(memory_blocs_parser_extended_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
-  set_target_properties(memory_blocs_parser_extended_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-  add_test(NAME memory_blocs_parser_extended_navigation-test COMMAND memory_blocs_parser_extended_navigation-test WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+elseif(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 
-  add_executable(memory_blocs_parser_external_data-test test/memory_blocs_parser_external_data.test.cc)
-  target_link_libraries(memory_blocs_parser_external_data-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
-  set_target_properties(memory_blocs_parser_external_data-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-  add_test(NAME memory_blocs_parser_external_data-test COMMAND memory_blocs_parser_external_data-test WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+    enable_testing()
 
-  add_executable(stdbin_decoder-test test/stdbin_decoder.test.cc)
-  target_link_libraries(stdbin_decoder-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
-  set_target_properties(stdbin_decoder-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
-  add_test(NAME stdbin_decoder-test COMMAND stdbin_decoder-test WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test)
+    ## --- code copied from https://crascit.com/2015/07/25/cmake-gtest/
+    # Download and unpack googletest at configure time
+    configure_file(cmake/gtest_download.cmake.in googletest-download/CMakeLists.txt)
+    execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
 
+    # Add googletest directly to our build. This adds
+    # the following targets: gtest, gtest_main, gmock
+    # and gmock_main
+    add_subdirectory("${CMAKE_BINARY_DIR}/googletest-src"
+    "${CMAKE_BINARY_DIR}/googletest-build")
+
+    # The gtest/gmock targets carry header search path
+    # dependencies automatically when using CMake 2.8.11 or
+    # later. Otherwise we have to add them here ourselves.
+    if(CMAKE_VERSION VERSION_LESS 2.8.11)
+      include_directories("${gtest_SOURCE_DIR}/include")
+    endif()
+
+    ## ---
+
+    ## Add gtest based cpp test target and link libraries
+    add_executable(memory_blocs_parser_navigation-test test/memory_blocs_parser_navigation.test.cc)
+    target_link_libraries(memory_blocs_parser_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    add_test(NAME memory_blocs_parser_navigation_test COMMAND memory_blocs_parser_navigation-test)
+
+    add_executable(memory_blocs_parser_extended_navigation-test test/memory_blocs_parser_extended_navigation.test.cc)
+    target_link_libraries(memory_blocs_parser_extended_navigation-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_extended_navigation-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    add_test(NAME memory_blocs_parser_extended_navigation-test COMMAND memory_blocs_parser_extended_navigation-test)
+
+    add_executable(memory_blocs_parser_external_data-test test/memory_blocs_parser_external_data.test.cc)
+    target_link_libraries(memory_blocs_parser_external_data-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(memory_blocs_parser_external_data-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    add_test(NAME memory_blocs_parser_external_data-test COMMAND memory_blocs_parser_external_data-test)
+
+    add_executable(stdbin_decoder-test test/stdbin_decoder.test.cc)
+    target_link_libraries(stdbin_decoder-test ${PROJECT_NAME} ${Boost_LIBRARIES} gtest)
+    set_target_properties(stdbin_decoder-test PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    add_test(NAME stdbin_decoder-test COMMAND stdbin_decoder-test)
 endif()
